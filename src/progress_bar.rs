@@ -1,6 +1,7 @@
 use egui::{
     Color32, CornerRadius, NumExt as _, Pos2, Rect, Response, Rgba, Sense, Shape, Stroke,
-    TextStyle, TextWrapMode, Ui, Vec2, Widget, WidgetInfo, WidgetText, WidgetType, lerp, vec2,
+    TextStyle, TextWrapMode, Ui, Vec2, Widget, WidgetInfo, WidgetText, WidgetType, lerp,
+    load::SizedTexture, vec2,
 };
 
 enum ProgressBarText {
@@ -20,6 +21,7 @@ pub struct ProgressBar {
     fill: Option<Color32>,
     animate: bool,
     corner_radius: Option<CornerRadius>,
+    texture: Option<SizedTexture>,
 }
 
 impl ProgressBar {
@@ -33,6 +35,7 @@ impl ProgressBar {
             fill: None,
             animate: false,
             corner_radius: None,
+            texture: None,
         }
     }
 
@@ -94,6 +97,16 @@ impl ProgressBar {
         self.corner_radius = Some(corner_radius.into());
         self
     }
+
+    /// Set the texture to render over the progress bar.
+    ///
+    /// The texture will be linearly animated if [`Self::animate`] is enabled with frequency of 1/10 Hz.
+    /// If [`Self::fill`] is also set, the texture will be tinted by the fill color.
+    #[inline]
+    pub fn texture(mut self, texture: impl Into<SizedTexture>) -> Self {
+        self.texture = Some(texture.into());
+        self
+    }
 }
 
 impl Widget for ProgressBar {
@@ -106,6 +119,7 @@ impl Widget for ProgressBar {
             fill,
             animate,
             corner_radius,
+            texture,
         } = self;
 
         let animate = animate && progress < 1.0;
@@ -179,7 +193,7 @@ impl Widget for ProgressBar {
                     .add(Shape::line(points, Stroke::new(2.0, visuals.text_color())));
             }
 
-            render_texture(ui, fill, animate, corner_radius, inner_rect);
+            render_texture(ui, fill, texture, animate, corner_radius, inner_rect);
 
             if let Some(text_kind) = text {
                 let text = match text_kind {
@@ -212,42 +226,32 @@ impl Widget for ProgressBar {
 fn render_texture(
     ui: &mut Ui,
     fill: Option<Color32>,
+    texture: Option<SizedTexture>,
     animate: bool,
     corner_radius: CornerRadius,
     inner_rect: Rect,
 ) {
-    static TEXTURE: std::sync::OnceLock<egui::TextureHandle> = std::sync::OnceLock::new();
-    let texture = TEXTURE.get_or_init(|| load_texture(ui.ctx()));
+    let Some(texture) = texture else {
+        return;
+    };
     const AMPLITUDE: f32 = 1.0;
-    // 1 / 10 HZ
-    const FREQUENCY: f32 = 0.1;
+    const FREQUENCY: f32 = 0.1; // 1/10 Hz
     let x_offset = if animate {
         AMPLITUDE * (std::f32::consts::TAU * FREQUENCY * ui.ctx().input(|i| i.time) as f32).fract()
     } else {
         0.0
     };
 
-    let repeats = inner_rect.size() / texture.size_vec2();
+    let repeats = inner_rect.size() / texture.size;
 
     let uv = egui::Rect::from_min_max(
         egui::pos2(0.0 - x_offset, 0.0),
         egui::pos2(repeats.x - x_offset, repeats.y),
     );
 
-    egui::Image::new((texture.id(), inner_rect.size()))
+    egui::Image::new((texture.id, inner_rect.size()))
         .tint(fill.unwrap_or(Color32::WHITE))
-        .corner_radius(corner_radius - 2)
+        .corner_radius(corner_radius)
         .uv(uv)
         .paint_at(ui, inner_rect);
-}
-
-fn load_texture(ctx: &egui::Context) -> egui::TextureHandle {
-    ctx.load_texture(
-        "progress_bar_texture",
-        egui::ColorImage::from_rgba_unmultiplied(
-            [20, 20],
-            include_bytes!("progress_bar_texture.rgba"),
-        ),
-        egui::TextureOptions::LINEAR_REPEAT,
-    )
 }
