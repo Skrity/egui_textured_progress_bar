@@ -219,8 +219,7 @@ fn render_texture(
     static TEXTURE: std::sync::OnceLock<egui::TextureHandle> = std::sync::OnceLock::new();
     let texture = TEXTURE.get_or_init(|| load_texture(ui.ctx()));
     const AMPLITUDE: f32 = 1.0;
-    // 1 / 10 HZ
-    const FREQUENCY: f32 = 0.1;
+    const FREQUENCY: f32 = 0.1; // 1/10 HZ
     let x_offset = if animate {
         AMPLITUDE * (std::f32::consts::TAU * FREQUENCY * ui.ctx().input(|i| i.time) as f32).fract()
     } else {
@@ -236,7 +235,7 @@ fn render_texture(
 
     egui::Image::new((texture.id(), inner_rect.size()))
         .tint(fill.unwrap_or(Color32::WHITE))
-        .corner_radius(corner_radius - 2)
+        .corner_radius(corner_radius)
         .uv(uv)
         .paint_at(ui, inner_rect);
 }
