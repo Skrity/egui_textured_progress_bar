@@ -152,13 +152,13 @@ impl Widget for ProgressBar {
                 bright
             };
 
-            ui.painter().rect_filled(
-                inner_rect,
-                corner_radius,
-                Color32::from(
-                    Rgba::from(fill.unwrap_or(visuals.selection.bg_fill)) * color_factor as f32,
-                ),
-            );
+            // ui.painter().rect_filled(
+            //     inner_rect,
+            //     corner_radius,
+            //     Color32::from(
+            //         Rgba::from(fill.unwrap_or(visuals.selection.bg_fill)) * color_factor as f32,
+            //     ),
+            // );
 
             if animate && !has_custom_cr {
                 let n_points = 20;
