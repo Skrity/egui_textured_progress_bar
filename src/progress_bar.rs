@@ -179,7 +179,7 @@ impl Widget for ProgressBar {
                     .add(Shape::line(points, Stroke::new(2.0, visuals.text_color())));
             }
 
-            render_texture(ui, fill, None, animate, corner_radius, inner_rect);
+            render_texture(ui, fill, animate, corner_radius, inner_rect);
 
             if let Some(text_kind) = text {
                 let text = match text_kind {
@@ -212,32 +212,42 @@ impl Widget for ProgressBar {
 fn render_texture(
     ui: &mut Ui,
     fill: Option<Color32>,
-    texture: Option<egui::TextureId>,
     animate: bool,
     corner_radius: CornerRadius,
     inner_rect: Rect,
 ) {
-    let Some(texture) = texture else {
-        return;
-    };
-    let t = ui.ctx().input(|i| i.time) as f32;
+    static TEXTURE: std::sync::OnceLock<egui::TextureHandle> = std::sync::OnceLock::new();
+    let texture = TEXTURE.get_or_init(|| load_texture(ui.ctx()));
     const AMPLITUDE: f32 = 1.0;
+    // 1 / 10 HZ
     const FREQUENCY: f32 = 0.1;
-    let x = if animate {
-        AMPLITUDE * (std::f32::consts::TAU * FREQUENCY * t).fract()
+    let x_offset = if animate {
+        AMPLITUDE * (std::f32::consts::TAU * FREQUENCY * ui.ctx().input(|i| i.time) as f32).fract()
     } else {
         0.0
     };
-    // 1 Hz
-    let repeats = inner_rect.size() / 20.0;
+
+    let repeats = inner_rect.size() / texture.size_vec2();
+
     let uv = egui::Rect::from_min_max(
-        egui::pos2(0.0 - x, 0.0),
-        egui::pos2(repeats.x - x, repeats.y),
+        egui::pos2(0.0 - x_offset, 0.0),
+        egui::pos2(repeats.x - x_offset, repeats.y),
     );
 
-    egui::Image::new((texture, inner_rect.size()))
+    egui::Image::new((texture.id(), inner_rect.size()))
         .tint(fill.unwrap_or(Color32::WHITE))
         .corner_radius(corner_radius - 2)
         .uv(uv)
         .paint_at(ui, inner_rect);
+}
+
+fn load_texture(ctx: &egui::Context) -> egui::TextureHandle {
+    ctx.load_texture(
+        "progress_bar_texture",
+        egui::ColorImage::from_rgba_unmultiplied(
+            [20, 20],
+            include_bytes!("progress_bar_texture.rgba"),
+        ),
+        egui::TextureOptions::LINEAR_REPEAT,
+    )
 }
