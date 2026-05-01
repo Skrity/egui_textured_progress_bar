@@ -165,15 +165,16 @@ impl Widget for ProgressBar {
             } else {
                 bright
             };
-            render_texture(ui, fill, texture, animate, corner_radius, inner_rect);
 
-            ui.painter().rect_filled(
-                inner_rect,
-                corner_radius,
-                Color32::from(
-                    Rgba::from(fill.unwrap_or(visuals.selection.bg_fill)) * color_factor as f32,
-                ),
+            let pulse_color = Color32::from(
+                Rgba::from(fill.unwrap_or(visuals.selection.bg_fill)) * color_factor as f32,
             );
+            if let Some(texture) = texture {
+                render_texture(ui, fill, texture, animate, corner_radius, inner_rect);
+            } else {
+                ui.painter()
+                    .rect_filled(inner_rect, corner_radius, pulse_color);
+            }
 
             if animate && !has_custom_cr {
                 let n_points = 20;
@@ -225,14 +226,11 @@ impl Widget for ProgressBar {
 fn render_texture(
     ui: &mut Ui,
     fill: Option<Color32>,
-    texture: Option<SizedTexture>,
+    texture: SizedTexture,
     animate: bool,
     corner_radius: CornerRadius,
     inner_rect: Rect,
 ) {
-    let Some(texture) = texture else {
-        return;
-    };
     const AMPLITUDE: f32 = 1.0;
     const FREQUENCY: f32 = 0.1; // 1/10 Hz
     let x_offset = if animate {
