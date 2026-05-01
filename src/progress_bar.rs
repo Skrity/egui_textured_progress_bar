@@ -179,6 +179,8 @@ impl Widget for ProgressBar {
                     .add(Shape::line(points, Stroke::new(2.0, visuals.text_color())));
             }
 
+            render_texture(ui, fill, None, animate, corner_radius, inner_rect);
+
             if let Some(text_kind) = text {
                 let text = match text_kind {
                     ProgressBarText::Custom(text) => text,
@@ -205,4 +207,37 @@ impl Widget for ProgressBar {
 
         response
     }
+}
+
+fn render_texture(
+    ui: &mut Ui,
+    fill: Option<Color32>,
+    texture: Option<egui::TextureId>,
+    animate: bool,
+    corner_radius: CornerRadius,
+    inner_rect: Rect,
+) {
+    let Some(texture) = texture else {
+        return;
+    };
+    let t = ui.ctx().input(|i| i.time) as f32;
+    const AMPLITUDE: f32 = 1.0;
+    const FREQUENCY: f32 = 0.1;
+    let x = if animate {
+        AMPLITUDE * (std::f32::consts::TAU * FREQUENCY * t).fract()
+    } else {
+        0.0
+    };
+    // 1 Hz
+    let repeats = inner_rect.size() / 20.0;
+    let uv = egui::Rect::from_min_max(
+        egui::pos2(0.0 - x, 0.0),
+        egui::pos2(repeats.x - x, repeats.y),
+    );
+
+    egui::Image::new((texture, inner_rect.size()))
+        .tint(fill.unwrap_or(Color32::WHITE))
+        .corner_radius(corner_radius - 2)
+        .uv(uv)
+        .paint_at(ui, inner_rect);
 }
