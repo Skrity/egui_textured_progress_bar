@@ -1,0 +1,7 @@
+[package]
+name = "egui_textured_progress_bar"
+version = "0.1.0+egui0.32"
+edition = "2024"
+
+[dependencies]
+egui = { version = "0.32", default-features = false }
