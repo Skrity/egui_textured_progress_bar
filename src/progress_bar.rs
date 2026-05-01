@@ -165,6 +165,7 @@ impl Widget for ProgressBar {
             } else {
                 bright
             };
+            render_texture(ui, fill, texture, animate, corner_radius, inner_rect);
 
             ui.painter().rect_filled(
                 inner_rect,
@@ -192,8 +193,6 @@ impl Widget for ProgressBar {
                 ui.painter()
                     .add(Shape::line(points, Stroke::new(2.0, visuals.text_color())));
             }
-
-            render_texture(ui, fill, texture, animate, corner_radius, inner_rect);
 
             if let Some(text_kind) = text {
                 let text = match text_kind {
