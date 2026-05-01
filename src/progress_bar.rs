@@ -170,7 +170,14 @@ impl Widget for ProgressBar {
                 Rgba::from(fill.unwrap_or(visuals.selection.bg_fill)) * color_factor as f32,
             );
             if let Some(texture) = texture {
-                render_texture(ui, fill, texture, animate, corner_radius, inner_rect);
+                render_texture(
+                    ui,
+                    Some(pulse_color),
+                    texture,
+                    animate,
+                    corner_radius,
+                    inner_rect,
+                );
             } else {
                 ui.painter()
                     .rect_filled(inner_rect, corner_radius, pulse_color);
