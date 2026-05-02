@@ -22,6 +22,7 @@ pub struct ProgressBar {
     animate: bool,
     corner_radius: Option<CornerRadius>,
     texture: Option<SizedTexture>,
+    pulse: bool,
 }
 
 impl ProgressBar {
@@ -36,6 +37,7 @@ impl ProgressBar {
             animate: false,
             corner_radius: None,
             texture: None,
+            pulse: false,
         }
     }
 
@@ -107,6 +109,13 @@ impl ProgressBar {
         self.texture = Some(texture.into());
         self
     }
+
+    /// Enable pulsating animation of the progress bar.
+    #[inline]
+    pub fn pulse(mut self, pulse: bool) -> Self {
+        self.pulse = pulse;
+        self
+    }
 }
 
 impl Widget for ProgressBar {
@@ -120,9 +129,10 @@ impl Widget for ProgressBar {
             animate,
             corner_radius,
             texture,
+            pulse,
         } = self;
 
-        let animate = animate && progress < 1.0;
+        let animate = (animate || pulse) && progress < 1.0;
 
         let desired_width =
             desired_width.unwrap_or_else(|| ui.available_size_before_wrap().x.at_least(96.0));
@@ -159,7 +169,7 @@ impl Widget for ProgressBar {
                 Rect::from_min_size(outer_rect.min, vec2(filled_width, outer_rect.height()));
 
             let (dark, bright) = (0.7, 1.0);
-            let color_factor = if animate {
+            let color_factor = if pulse {
                 let time = ui.input(|i| i.time);
                 lerp(dark..=bright, time.cos().abs())
             } else {
