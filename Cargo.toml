@@ -4,4 +4,7 @@ version = "0.1.0+egui0.32"
 edition = "2024"
 
 [dependencies]
-egui = { version = "0.32", default-features = false }
+egui = { version = "0.32.3", default-features = false }
+
+[dev-dependencies]
+eframe = { version = "0.32.3" }
