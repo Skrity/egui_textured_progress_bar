@@ -1,10 +1,10 @@
 [package]
 name = "egui_textured_progress_bar"
-version = "0.2.0+egui0.33"
+version = "0.2.0+egui0.34"
 edition = "2024"
 
 [dependencies]
-egui = { version = "0.33.3", default-features = false }
+egui = { version = "0.34.1", default-features = false }
 
 [dev-dependencies]
-eframe = { version = "0.33.3" }
+eframe = { version = "0.34.1" }
