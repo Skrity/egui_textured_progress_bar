@@ -132,7 +132,8 @@ impl Widget for ProgressBar {
             pulse,
         } = self;
 
-        let animate = (animate || pulse) && progress < 1.0;
+        let animate = animate && progress < 1.0;
+        let pulse = pulse && progress < 1.0;
 
         let desired_width =
             desired_width.unwrap_or_else(|| ui.available_size_before_wrap().x.at_least(96.0));
@@ -152,7 +153,7 @@ impl Widget for ProgressBar {
         });
 
         if ui.is_rect_visible(response.rect) {
-            if animate {
+            if animate || pulse {
                 ui.ctx().request_repaint();
             }
 

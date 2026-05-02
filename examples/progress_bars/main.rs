@@ -68,10 +68,18 @@ impl eframe::App for MyApp {
             );
             ui.add(
                 egui_textured_progress_bar::ProgressBar::new(progress)
-                    .text("Non animated")
+                    .text("Not animated")
                     .animate(false)
                     .fill(Color32::LIGHT_BLUE)
-                    .text("XDD")
+                    .corner_radius(7)
+                    .texture(progress_bar_texture(ui)),
+            );
+            ui.add(
+                egui_textured_progress_bar::ProgressBar::new(progress)
+                    .text("Pulsing")
+                    .animate(false)
+                    .pulse(true)
+                    .fill(Color32::LIGHT_BLUE)
                     .corner_radius(7)
                     .texture(progress_bar_texture(ui)),
             );
